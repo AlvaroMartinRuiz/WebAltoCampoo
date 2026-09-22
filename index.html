@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vive Alto Campoo · Rutas y paseos en Cantabria</title>
+  <meta name="description" content="Rutas de senderismo, paseos a caballo, bici y raquetas de nieve en Alto Campoo, Cantabria. Reserva tu plaza online." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛰️</text></svg>" />
+</head>
+<body>
+  <header class="site-header">
+    <a href="#" class="logo">Vive <span>Alto Campoo</span></a>
+    <nav>
+      <a href="#servicios">Actividades</a>
+      <a href="#reservas" class="btn btn-small">Reservar</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <p class="eyebrow">Cantabria · Valle de Campoo</p>
+      <h1>Descubre la montaña a tu ritmo</h1>
+      <p class="lead">Rutas guiadas, paseos a caballo y aventuras en bici por los paisajes del Alto Campoo, a los pies del Pico Tres Mares.</p>
+      <a href="#reservas" class="btn">Ver disponibilidad</a>
+    </div>
+  </section>
+
+  <main>
+    <section id="servicios" class="section">
+      <h2>Nuestras actividades</h2>
+      <p class="section-sub">Elige tu experiencia. Todas incluyen guía local y seguro.</p>
+      <div id="services-grid" class="services-grid"></div>
+    </section>
+
+    <section id="reservas" class="section booking">
+      <h2>Reserva tu plaza</h2>
+      <p class="section-sub">Selecciona la actividad, el día y la hora. Verás las plazas libres al momento.</p>
+
+      <div class="booking-layout">
+        <form id="booking-form" class="booking-form" novalidate>
+          <div class="step">
+            <span class="step-num">1</span>
+            <label for="service">Actividad</label>
+            <select id="service" name="service" required></select>
+          </div>
+
+          <div class="step">
+            <span class="step-num">2</span>
+            <label>Fecha</label>
+            <div class="calendar" id="calendar">
+              <div class="cal-head">
+                <button type="button" id="cal-prev" aria-label="Mes anterior">‹</button>
+                <strong id="cal-title"></strong>
+                <button type="button" id="cal-next" aria-label="Mes siguiente">›</button>
+              </div>
+              <div class="cal-grid cal-weekdays">
+                <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
+              </div>
+              <div class="cal-grid" id="cal-days"></div>
+              <div class="cal-legend">
+                <span><i class="dot ok"></i>Disponible</span>
+                <span><i class="dot low"></i>Últimas plazas</span>
+                <span><i class="dot full"></i>Completo</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <span class="step-num">3</span>
+            <label>Hora</label>
+            <div id="slots" class="slots"><p class="muted">Elige primero un día.</p></div>
+          </div>
+
+          <div class="step">
+            <span class="step-num">4</span>
+            <label>Tus datos</label>
+            <div class="fields">
+              <div class="field">
+                <label for="people">Personas</label>
+                <input type="number" id="people" name="people" min="1" value="1" required />
+              </div>
+              <div class="field">
+                <label for="name">Nombre y apellidos</label>
+                <input type="text" id="name" name="name" autocomplete="name" required />
+              </div>
+              <div class="field">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" autocomplete="email" required />
+              </div>
+              <div class="field">
+                <label for="phone">Teléfono</label>
+                <input type="tel" id="phone" name="phone" autocomplete="tel" required />
+              </div>
+              <div class="field field-full">
+                <label for="notes">Comentarios (opcional)</label>
+                <textarea id="notes" name="notes" rows="2" placeholder="Alergias, nivel, niños…"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <p id="form-error" class="form-error" role="alert"></p>
+        </form>
+
+        <aside class="summary" aria-live="polite">
+          <h3>Resumen</h3>
+          <dl>
+            <dt>Actividad</dt><dd id="sum-service">—</dd>
+            <dt>Fecha</dt><dd id="sum-date">—</dd>
+            <dt>Hora</dt><dd id="sum-time">—</dd>
+            <dt>Personas</dt><dd id="sum-people">1</dd>
+            <dt>Plazas libres</dt><dd id="sum-free">—</dd>
+          </dl>
+          <div class="total"><span>Total</span><strong id="sum-total">0 €</strong></div>
+          <button type="submit" form="booking-form" class="btn btn-block" id="submit-btn">Confirmar reserva</button>
+          <p class="muted small">Pago en el punto de encuentro. Cancelación gratuita hasta 24 h antes.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section my-bookings" id="mis-reservas">
+      <h2>Mis reservas</h2>
+      <p class="section-sub">Reservas hechas desde este dispositivo.</p>
+      <div id="my-bookings-list"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><strong>Vive Alto Campoo</strong> · Brañavieja, Hermandad de Campoo de Suso, Cantabria</p>
+    <p class="muted">info@vivealtocampoo.es · +34 600 000 000</p>
+  </footer>
+
+  <dialog id="confirm-dialog">
+    <h3>¡Reserva confirmada! 🎉</h3>
+    <p id="confirm-text"></p>
+    <p class="muted small">Código de reserva: <strong id="confirm-code"></strong></p>
+    <form method="dialog"><button class="btn">Cerrar</button></form>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
