@@ -211,6 +211,33 @@ select:focus, input:focus, textarea:focus { outline: 2px solid var(--primary); o
 .my-booking p::first-letter { text-transform: uppercase; }
 .my-booking code { background: var(--bg); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.85rem; }
 
+.my-booking.is-cancelled { opacity: 0.65; }
+.my-booking.is-cancelled strong { text-decoration: line-through; }
+
+/* Días cerrados y carga */
+.day.closed { opacity: 0.6; background: repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in srgb, var(--danger) 18%, transparent) 4px 6px); }
+.cal-grid.loading { opacity: 0.5; transition: opacity 0.2s; }
+
+/* Gestionar reserva y contacto */
+.manage, .contact { border-top: 1px solid var(--line); }
+.two-col { display: grid; grid-template-columns: minmax(0, 380px) 1fr; gap: 2rem; align-items: start; }
+.card-form {
+  display: grid; gap: 0.9rem;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.4rem;
+}
+.card-form .btn { justify-self: start; }
+.contact-form { max-width: 720px; }
+.form-ok { color: var(--ok); font-weight: 500; margin: 0; min-height: 1.4em; }
+
+.badge { display: inline-block; font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--bg); color: var(--muted); white-space: nowrap; }
+.badge-cancelled { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+.badge-ok { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+.btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+.btn-ghost:hover { background: var(--bg); }
+.btn-danger { background: var(--danger); }
+.btn-danger:hover { background: #962f2f; }
+[hidden] { display: none !important; }
+
 /* Diálogo */
 dialog {
   border: 0; border-radius: var(--radius); padding: 2rem; max-width: 440px; width: calc(100% - 32px);
@@ -227,6 +254,7 @@ dialog .btn { margin-top: 1rem; }
 @media (max-width: 860px) {
   .booking-layout { grid-template-columns: 1fr; }
   .summary { position: static; }
+  .two-col { grid-template-columns: 1fr; }
 }
 @media (max-width: 520px) {
   .site-header nav a:not(.btn) { display: none; }

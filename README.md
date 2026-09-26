@@ -1,102 +1,86 @@
 # Vive Alto Campoo
 
-Web de reservas de rutas y paseos en Alto Campoo (Cantabria). Es una web estática (HTML + CSS + JS, sin compilación) publicada con GitHub Pages.
+Web de reservas de rutas y paseos en Alto Campoo (Cantabria), con **frontend** (web pública + panel de gestión) y **backend** (API en Node.js con base de datos SQLite).
 
-**Web:** https://alvaromartinruiz.github.io/WebAltoCampoo/
+## Qué incluye
 
-## Archivos
+**Web pública** (`/`)
+- Actividades cargadas desde la base de datos.
+- Calendario con plazas libres en tiempo real (se refresca al volver a la pestaña).
+- Reserva con control de plazas en el servidor: nunca hay overbooking, aunque dos personas reserven a la vez.
+- "Mis reservas" en el dispositivo y **consulta/cancelación** con código + email (hasta 24 h antes).
+- Formulario de contacto.
 
-| Archivo | Para qué sirve |
+**Panel de gestión** (`/admin`, protegido con contraseña)
+- **Resumen:** personas de los próximos 7 días, ingresos del mes, próximas salidas con ocupación.
+- **Reservas:** filtros por fecha, actividad, estado y búsqueda; cancelar; exportar a CSV (Excel).
+- **Actividades:** crear, editar precio/plazas/horarios/días/temporada, ocultar.
+- **Cierres:** bloquear un día (mal tiempo, festivos) para una o todas las actividades; avisa si ya hay reservas ese día.
+- **Mensajes** del formulario de contacto.
+
+## Estructura
+
+| Ruta | Para qué sirve |
 |---|---|
-| `index.html` | Página de inicio: actividades, reservas y "mis reservas" |
-| `styles.css` | Estilos (incluye modo oscuro y móvil) |
-| `config.js` | **Lo que editarás más:** actividades, precios, plazas, horarios, días |
-| `app.js` | Lógica de calendario, disponibilidad y reservas |
-
-## Cambiar actividades
-
-Edita `config.js`. Cada actividad tiene:
-
-- `capacity`: plazas por turno
-- `slots`: horas de salida (`"10:00"`)
-- `days`: días de la semana (0 = domingo … 6 = sábado)
-- `months` (opcional): meses en que se ofrece (1–12)
-
-## Dónde se guardan las reservas
-
-GitHub Pages solo sirve archivos estáticos, así que no tiene base de datos.
-
-- **Sin configurar nada (modo demo):** las reservas se guardan en el navegador de quien reserva. La web funciona, pero cada visitante solo ve sus propias reservas y **tú no las recibes**.
-- **Con Supabase (gratis, recomendado para uso real):** las reservas se guardan en una base de datos compartida. Todos ven la misma disponibilidad y tú ves las reservas en el panel de Supabase.
-
-### Activar Supabase
-
-1. Crea una cuenta y un proyecto en https://supabase.com.
-2. En **SQL Editor**, ejecuta:
-
-```sql
--- Plazas por actividad (deben coincidir con config.js)
-create table services (id text primary key, capacity int not null);
-insert into services values
-  ('senderismo', 12), ('caballo', 6), ('ebike', 8), ('raquetas', 10);
-
-create table bookings (
-  code text primary key,
-  service text not null references services(id),
-  date date not null,
-  time text not null,
-  people int not null check (people > 0),
-  name text not null,
-  email text not null,
-  phone text not null,
-  notes text,
-  created_at timestamptz default now()
-);
-
--- Nadie puede leer los datos personales desde la web
-alter table bookings enable row level security;
-alter table services enable row level security;
-
--- Vista pública con solo las plazas ocupadas por turno
-create view slot_occupancy as
-  select service, date, time, sum(people)::int as people
-  from bookings group by service, date, time;
-grant select on slot_occupancy to anon;
-
--- Reserva con comprobación de plazas (evita overbooking)
-create function create_booking(
-  p_code text, p_service text, p_date date, p_time text, p_people int,
-  p_name text, p_email text, p_phone text, p_notes text
-) returns void language plpgsql security definer set search_path = public as $$
-declare cap int; taken int;
-begin
-  select capacity into cap from services where id = p_service for update;
-  if cap is null then raise exception 'Actividad no válida'; end if;
-  if p_date < current_date then raise exception 'Fecha no válida'; end if;
-  select coalesce(sum(people), 0) into taken from bookings
-    where service = p_service and date = p_date and time = p_time;
-  if taken + p_people > cap then
-    raise exception 'No quedan plazas suficientes en ese horario.';
-  end if;
-  insert into bookings values (p_code, p_service, p_date, p_time, p_people,
-    p_name, p_email, p_phone, nullif(p_notes, ''), now());
-end $$;
-grant execute on function create_booking to anon;
-```
-
-3. En **Project Settings → API**, copia la *Project URL* y la clave *anon public*, y pégalas en `config.js`:
-
-```js
-supabase: {
-  url: "https://xxxx.supabase.co",
-  anonKey: "eyJ...",
-},
-```
-
-4. Sube el cambio a GitHub. Las reservas aparecerán en **Table Editor → bookings**.
-
-> La clave *anon* es pública por diseño; los datos personales quedan protegidos por las reglas de seguridad de arriba.
+| `server/index.js` | Arranque y variables de entorno |
+| `server/app.js` | Rutas de la API (pública y admin) |
+| `server/booking.js` | Disponibilidad, reservas, cancelaciones, validación |
+| `server/db.js` | Esquema SQLite y conexión |
+| `server/seed.js` | Actividades iniciales (solo al crear la BD) |
+| `server/security.js` | Sesión admin (cookie firmada), límite de peticiones, cabeceras |
+| `server/time.js` | Fechas en hora de Madrid |
+| `public/` | Frontend: `index.html`, `app.js`, `admin.html`, `admin.js`, estilos |
+| `test/` | Tests de la API |
 
 ## Probar en local
 
-Abre `index.html` en el navegador, o ejecuta `python -m http.server` y entra en http://localhost:8000.
+Necesitas **Node.js 22.5 o superior** (usa el SQLite integrado en Node, sin dependencias nativas).
+
+```bash
+npm install
+ADMIN_PASSWORD=loquequieras npm run dev
+```
+
+Abre http://localhost:3000 (web) y http://localhost:3000/admin (panel). Si no defines `ADMIN_PASSWORD`, se genera una temporal y se muestra en la consola.
+
+```bash
+npm test
+```
+
+## Variables de entorno
+
+| Variable | Por defecto | |
+|---|---|---|
+| `ADMIN_PASSWORD` | — | Contraseña del panel. **Obligatoria en producción.** |
+| `SESSION_SECRET` | aleatoria | Firma de la sesión. Ponla fija para que no se cierre sesión al reiniciar. |
+| `PORT` | `3000` | |
+| `DATABASE_FILE` | `data/vive-alto-campoo.db` | Archivo SQLite. Debe estar en un disco persistente. |
+| `BOOKING_WINDOW_DAYS` | `90` | Días reservables hacia delante |
+| `CANCEL_HOURS` | `24` | Horas mínimas para que el cliente cancele online |
+| `NODE_ENV` | — | `production` activa cookies `Secure` y caché de estáticos |
+
+## Publicar
+
+GitHub Pages solo sirve archivos estáticos, así que ya no sirve para esta versión. Cualquier hosting con Node o Docker vale; lo importante es que el archivo de la base de datos esté en un **disco persistente**:
+
+- **Docker** (Fly.io, Railway, un VPS…):
+  ```bash
+  docker build -t vive-alto-campoo .
+  docker run -p 3000:3000 -v vac-data:/data -e ADMIN_PASSWORD=... -e SESSION_SECRET=... vive-alto-campoo
+  ```
+- **Render / Railway sin Docker:** comando de build `npm ci`, de arranque `npm start`, y añade un disco/volumen montado donde apunte `DATABASE_FILE`.
+
+**Copia de seguridad:** basta con copiar el archivo `.db` (o exportar el CSV desde el panel).
+
+## API
+
+| Método | Ruta | |
+|---|---|---|
+| GET | `/api/config` | Fecha de hoy, ventana de reservas, horas de cancelación |
+| GET | `/api/services` | Actividades visibles |
+| GET | `/api/services/:id/availability?from&to` | Plazas libres por día y hora |
+| POST | `/api/bookings` | Crear reserva |
+| POST | `/api/bookings/lookup` | Consultar reserva (`code`, `email`) |
+| POST | `/api/bookings/cancel` | Cancelar reserva (`code`, `email`) |
+| POST | `/api/messages` | Mensaje de contacto |
+| — | `/api/admin/*` | Panel (requiere sesión): `login`, `stats`, `bookings`, `bookings.csv`, `services`, `closures`, `messages` |

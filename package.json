@@ -1,0 +1,19 @@
+{
+  "name": "vive-alto-campoo",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Web de reservas de Vive Alto Campoo: frontend + API con base de datos.",
+  "type": "module",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server/index.js",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.js\""
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
